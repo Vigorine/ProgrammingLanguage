@@ -1,8 +1,8 @@
-start:
-    display "This is a test"
+main:
+    dump _100_
     call other_label
-    display "We are back"
-    quit
+    dump "We are back"
+    end
 
 other_label:
-    display "In other label"
+    dump "In other label"

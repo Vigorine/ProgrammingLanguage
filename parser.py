@@ -23,7 +23,7 @@ class Parser:
                     self.AST.append(t)
 
             elif token['id'] == 'keyword':
-                if token['value'] == 'quit':
+                if token['value'] == 'end':
                     t = {token['value']: 0}
                     self.add_node(parent, t)
                 else:
@@ -35,7 +35,7 @@ class Parser:
                         self.add_node(parent, t)
                         collect = False
 
-            elif token['id'] == 'char' or token['id'] == 'atom':
+            elif token['id'] == 'string' or token['id'] == 'integer' or token['id'] == 'newline':
                 if collect == False:
                     saved = token
                     collect = True

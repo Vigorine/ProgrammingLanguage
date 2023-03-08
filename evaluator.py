@@ -16,18 +16,12 @@ class Evaluator:
     def execute(self, loc):
         if isinstance(loc[1], list):
             self.run(loc[1])
-        elif loc[0] == 'display':
-            self.echo(loc[1])
-        elif loc[0] == 'quit':
-            self.stop()
+        elif loc[0] == 'dump':
+            print(loc[1])
+        elif loc[0] == 'end':
+            quit()
         elif loc[0] == 'call':
             self.goto(loc[1])
-
-    def echo(self, v):
-        print(v)
-
-    def stop(self):
-        quit()
 
     def goto(self, v):
         for node in self.AST:

@@ -1,0 +1,23 @@
+{
+  "name": "programminglanguage",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/basic.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vigorine/ProgrammingLanguage.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Vigorine/ProgrammingLanguage/issues"
+  },
+  "homepage": "https://github.com/Vigorine/ProgrammingLanguage#readme",
+  "dependencies": {
+    "fs": "^0.0.1-security"
+  }
+}

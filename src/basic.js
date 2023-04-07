@@ -1,5 +1,6 @@
 const fs = require("fs");
 
+
 class BasicError {
     constructor(name, details) {
         this.name = name;
@@ -32,7 +33,8 @@ class InvalidSyntaxError extends BasicError {
 }
 
 const constants = {
-    numbers: '0123456789'
+    numbers: '0123456789',
+    letters: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 }
 Object.freeze(constants);
 
@@ -42,7 +44,10 @@ const TokenTypes = {
     PLUS: 'PLUS',
     MINUS: 'MINUS',
     MUL: 'MUL',
-    DIV: 'DIV'
+    DIV: 'DIV',
+    STR: 'STR',
+    FSTR: 'FSTR',
+    VAR: 'VAR'
 };
 Object.freeze(TokenTypes);
 
@@ -74,7 +79,6 @@ class TokenList {
     constructor() {
         this.tokens = {};
         this.tokensRaw = {};
-        this.line = 0;
     }
 
     createLists(lines) {
@@ -88,24 +92,19 @@ class TokenList {
      * 
      * @param {Token} token 
      */
-    add(token) {
-        this.tokens[this.line].push(token);
-        if(token.value) this.tokensRaw[this.line].push(`${token.type}:${token.value}`);
-        else this.tokensRaw[this.line].push(token.type);
+    add(token, line) {
+        this.tokens[line].push(token);
+        if(token.value) this.tokensRaw[line].push(`${token.type}:${token.value}`);
+        else this.tokensRaw[line].push(token.type);
     }
 
     /**
      * 
      * @param {Number} index 
      */
-    remove(index) {
-        this.tokens[this.line].splice(index, 1);
-        this.tokensRaw[this.line].splice(index, 1);
-    }
-
-    adv() {
-        this.line++;
-        console.log(this.line)
+    remove(index, line) {
+        this.tokens.splice(index, 1);
+        this.tokensRaw.splice(index, 1);
     }
 
     listTokens() {
@@ -123,30 +122,26 @@ class Lexer {
     /**
      * 
      * @param {String} fn 
-     * @param {Array} lines
+     * @param {String} data
      */
-    constructor(fn, lines) {
+    constructor(fn, data) {
         this.fn = fn;
-        this.lines = lines;
+        this.data = data;
         this.tokens = new TokenList();
         this.currentChar = null;
         this.pos = -1;
-        this.line = 0;
         this.advance();
     }
 
     advance() {
         this.pos++;
-        if(this.pos < this.lines[this.line].length) this.currentChar = this.lines[this.line][this.pos];
+        if(this.data[this.pos] == "\n") this.currentChar = null;
+        else if(this.pos < this.data.length) this.currentChar = this.data[this.pos];
         else this.currentChar = null;
-        if(this.currentChar == null) {
-            this.tokens.adv();
-            this.adv();
-        }
     }
 
-    adv() {
-        this.line++;
+    newline() {
+
     }
 
     /**
@@ -154,26 +149,31 @@ class Lexer {
      * @returns {TokenList}
      */
     start() {
-        this.tokens.createLists(this.lines);
-        while(this.currentChar != null) {
-            if(constants.numbers.includes(this.currentChar)) {
-                this.tokens.add(this.makeNumber());
-            } else if(this.currentChar == '+') {
-                this.tokens.add(new Token(TokenTypes.PLUS));
-                this.advance();
-            } else if(this.currentChar == '-') {
-                this.tokens.add(new Token(TokenTypes.MINUS));
-                this.advance();
-            } else if(this.currentChar == '*') {
-                this.tokens.add(new Token(TokenTypes.MUL));
-                this.advance();
-            } else if(this.currentChar == '/') {
-                this.tokens.add(new Token(TokenTypes.DIV));
-                this.advance();
-            } else {
-                this.advance();
+        var lines = this.data.split("\n");
+        this.tokens.createLists(lines);
+        for(var i = 0, l = lines.length; i < l; i++) {
+            while(this.currentChar != null) {
+                if(constants.numbers.includes(this.currentChar)) {
+                    this.tokens.add(this.makeNumber(), i);
+                } else if(this.currentChar == '"' || this.currentChar == "'"){
+                    this.tokens.add(this.makeString(), i);
+                } else if(this.currentChar == '+') {
+                    this.tokens.add(new Token(TokenTypes.PLUS), i);
+                    this.advance();
+                } else if(this.currentChar == '-') {
+                    this.tokens.add(new Token(TokenTypes.MINUS), i);
+                    this.advance();
+                } else if(this.currentChar == '*') {
+                    this.tokens.add(new Token(TokenTypes.MUL), i);
+                    this.advance();
+                } else if(this.currentChar == '/') {
+                    this.tokens.add(new Token(TokenTypes.DIV), i);
+                    this.advance();
+                } else {
+                    this.advance();
+                }
             }
-
+            this.advance();
         }
 
         return this.tokens;
@@ -202,6 +202,32 @@ class Lexer {
         else return new Token(TokenTypes.FLOAT, parseFloat(num));
     }
 
+    /**
+     * 
+     * @returns {Token}
+     */
+    makeString() {
+        var str = `${this.currentChar}`;
+        var begStr = this.currentChar;
+        this.advance();
+        console.log(str);
+        console.log(begStr);
+
+
+        while(this.currentChar != null && this.currentChar != begStr) {
+            str += this.currentChar;
+            this.advance();
+        }
+        str += this.currentChar;
+        this.advance();
+        return new Token(TokenTypes.STR, str);
+        
+    }
+
+    makeVar() {
+
+    }
+
 }
 
 /**
@@ -217,8 +243,7 @@ function main(args) {
         var path = args[1];
         if(fs.existsSync(path)) {
             var val = fs.readFileSync(path, { encoding: 'utf-8' });
-            var lines = val.split('\n');
-            var lexer = new Lexer(path, lines);
+            var lexer = new Lexer(path, val);
             console.log(lexer.start().list());
         } else return new InvalidFileError(`File '${path}' could not be found!`).log();
     } else return new IllegalCommandError(`Command '${args[0]}' does not exist!`).log();

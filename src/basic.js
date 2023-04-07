@@ -35,7 +35,7 @@ class InvalidSyntaxError extends BasicError {
 const constants = {
     numbers: '0123456789',
     letters: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-}
+};
 Object.freeze(constants);
 
 const TokenTypes = {

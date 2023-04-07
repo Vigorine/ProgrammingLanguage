@@ -46,7 +46,6 @@ const TokenTypes = {
     MUL: 'MUL',
     DIV: 'DIV',
     STR: 'STR',
-    FSTR: 'FSTR',
     VAR: 'VAR'
 };
 Object.freeze(TokenTypes);
